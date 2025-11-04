@@ -65,68 +65,22 @@ function drawSnake() {
         const segment = snake[i];
         const padding = 2;
         
-        // Create gradient for snake segment
-        const gradient = ctx.createLinearGradient(
-            segment.x, segment.y, 
-            segment.x + box, segment.y + box
-        );
-        
+        // Simple solid color - darker green for body, lighter for head
         if(i === 0) {
-            // Head with brighter gradient
-            gradient.addColorStop(0, '#00ffaa');
-            gradient.addColorStop(0.5, '#00ff88');
-            gradient.addColorStop(1, '#00cc66');
+            ctx.fillStyle = '#4a9b6a';
         } else {
-            // Body with softer gradient
-            gradient.addColorStop(0, '#44ff99');
-            gradient.addColorStop(0.5, '#33ee88');
-            gradient.addColorStop(1, '#22dd77');
+            ctx.fillStyle = '#3d7a56';
         }
         
-        // Draw shadow
-        ctx.shadowColor = i === 0 ? 'rgba(0, 255, 170, 0.5)' : 'rgba(68, 255, 153, 0.3)';
-        ctx.shadowBlur = i === 0 ? 8 : 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
+        // Draw simple rectangle
+        ctx.fillRect(segment.x + padding, segment.y + padding, box - padding * 2, box - padding * 2);
         
-        // Draw rounded rectangle
-        ctx.fillStyle = gradient;
-        const radius = 4;
-        roundRect(segment.x + padding, segment.y + padding, box - padding * 2, box - padding * 2, radius);
-        ctx.fill();
-        
-        // Reset shadow
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        
-        // Draw eyes on head
+        // Draw simple eyes on head
         if(i === 0) {
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(segment.x + 7, segment.y + 8, 2.5, 0, Math.PI * 2);
-            ctx.arc(segment.x + 13, segment.y + 8, 2.5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Pupils
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(segment.x + 7, segment.y + 8, 1, 0, Math.PI * 2);
-            ctx.arc(segment.x + 13, segment.y + 8, 1, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(segment.x + 6, segment.y + 6, 3, 3);
+            ctx.fillRect(segment.x + 11, segment.y + 6, 3, 3);
         }
-        
-        // Add highlight
-        const highlight = ctx.createLinearGradient(
-            segment.x, segment.y,
-            segment.x, segment.y + box / 2
-        );
-        highlight.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-        highlight.addColorStop(1, 'transparent');
-        ctx.fillStyle = highlight;
-        roundRect(segment.x + padding, segment.y + padding, box - padding * 2, (box - padding * 2) / 2, radius);
-        ctx.fill();
     }
 }
 
@@ -135,65 +89,20 @@ function drawFood() {
     const centerY = food.y + box/2;
     const radius = box/2 - 2;
     
-    // Draw glow/shadow
-    ctx.shadowColor = 'rgba(255, 68, 68, 0.6)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    
-    // Create radial gradient for apple
-    const gradient = ctx.createRadialGradient(
-        centerX - 2, centerY - 2, 2,
-        centerX, centerY, radius
-    );
-    gradient.addColorStop(0, '#ff6b6b');
-    gradient.addColorStop(0.3, '#ff4444');
-    gradient.addColorStop(0.7, '#ee2222');
-    gradient.addColorStop(1, '#cc0000');
-    
-    ctx.fillStyle = gradient;
+    // Simple solid red circle
+    ctx.fillStyle = '#d32f2f';
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Reset shadow
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    
-    // Draw highlight
-    const highlight = ctx.createRadialGradient(
-        centerX - 3, centerY - 3, 0,
-        centerX - 3, centerY - 3, 5
-    );
-    highlight.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-    highlight.addColorStop(1, 'transparent');
-    ctx.fillStyle = highlight;
-    ctx.beginPath();
-    ctx.arc(centerX - 3, centerY - 3, 5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw stem
-    ctx.fillStyle = '#4a7c59';
-    ctx.fillRect(centerX - 1.5, food.y + 2, 3, 5);
-    
-    // Draw leaf
-    ctx.fillStyle = '#00ff00';
-    ctx.beginPath();
-    ctx.ellipse(centerX + 4, food.y + 3, 3, 2, -0.5, 0, Math.PI * 2);
     ctx.fill();
 }
 
 function draw() {
-    // Draw background with gradient
-    const bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    bgGradient.addColorStop(0, "#0f0c29");
-    bgGradient.addColorStop(0.5, "#1a1a2e");
-    bgGradient.addColorStop(1, "#16213e");
-    ctx.fillStyle = bgGradient;
+    // Simple solid background
+    ctx.fillStyle = "#1e1e1e";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw grid pattern for depth
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+    // Simple grid pattern
+    ctx.strokeStyle = "#2a2a2a";
     ctx.lineWidth = 1;
     for(let i = 0; i <= canvas.width; i += box) {
         ctx.beginPath();
@@ -212,28 +121,22 @@ function draw() {
     drawFood();
 
     if(!gameStarted) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.font = "bold 26px 'Segoe UI', Arial, sans-serif";
+        ctx.fillStyle = "#b0b0b0";
+        ctx.font = "24px 'Segoe UI', Arial, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-        ctx.shadowBlur = 10;
         ctx.fillText("Press START to begin", canvas.width/2, canvas.height/2);
-        ctx.shadowBlur = 0;
         return;
     }
 
     if(isPaused) {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "bold 32px 'Segoe UI', Arial, sans-serif";
+        ctx.fillStyle = "#e0e0e0";
+        ctx.font = "28px 'Segoe UI', Arial, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.shadowColor = "rgba(102, 126, 234, 0.8)";
-        ctx.shadowBlur = 15;
         ctx.fillText("PAUSED", canvas.width/2, canvas.height/2);
-        ctx.shadowBlur = 0;
         return;
     }
 

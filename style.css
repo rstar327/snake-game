@@ -10,87 +10,27 @@ body {
     align-items: center;
     justify-content: center;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
-    color: #fff;
+    background: #1a1a1a;
+    color: #e0e0e0;
     min-height: 100vh;
     padding: 20px;
-    position: relative;
-    overflow-x: hidden;
-}
-
-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-    pointer-events: none;
-    animation: float 20s ease-in-out infinite;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
 }
 
 .game-container {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
+    background: #2a2a2a;
+    border-radius: 12px;
     padding: 40px;
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-    z-index: 1;
-    animation: containerSlideIn 0.6s ease-out;
-}
-
-@keyframes containerSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    border: 1px solid #3a3a3a;
 }
 
 h1 {
-    font-size: 3em;
+    font-size: 2.5em;
     margin-bottom: 20px;
-    text-shadow: 
-        0 0 20px rgba(255, 255, 255, 0.5),
-        2px 2px 4px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, #fff 0%, #a8edea 50%, #fed6e3 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-size: 200% 200%;
-    animation: textShimmer 3s ease infinite;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-@keyframes textShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 1px;
 }
 
 .stats-container {
@@ -102,80 +42,42 @@ h1 {
 }
 
 .stat-box {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+    background: #333333;
     padding: 20px 30px;
-    border-radius: 16px;
+    border-radius: 8px;
     min-width: 130px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
-        0 4px 16px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.stat-box::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.stat-box:hover::before {
-    left: 100%;
+    border: 1px solid #404040;
+    transition: all 0.2s ease;
 }
 
 .stat-box:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 
-        0 8px 24px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: #3a3a3a;
+    border-color: #505050;
 }
 
 .stat-label {
     font-size: 0.85em;
-    opacity: 0.9;
+    color: #b0b0b0;
     margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 600;
+    letter-spacing: 1px;
+    font-weight: 500;
 }
 
 .stat-value {
     font-size: 2.5em;
-    font-weight: 700;
-    text-shadow: 
-        0 0 10px rgba(255, 255, 255, 0.5),
-        2px 2px 4px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, #fff 0%, #a8edea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-weight: 600;
+    color: #ffffff;
 }
 
 canvas {
-    background: linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%);
+    background: #1e1e1e;
     margin: 25px 0;
-    border: 3px solid rgba(255, 255, 255, 0.4);
-    border-radius: 16px;
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        inset 0 0 60px rgba(102, 126, 234, 0.1);
+    border: 2px solid #404040;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     max-width: 100%;
     height: auto;
-    transition: all 0.3s ease;
-}
-
-canvas:hover {
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 
-        0 12px 40px rgba(0, 0, 0, 0.6),
-        inset 0 0 80px rgba(102, 126, 234, 0.15);
 }
 
 .controls {
@@ -187,58 +89,27 @@ canvas:hover {
 }
 
 button {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    padding: 14px 30px;
-    border-radius: 12px;
-    font-size: 1em;
-    font-weight: 600;
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border: 1px solid #505050;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-button::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-button:hover::before {
-    width: 300px;
-    height: 300px;
+    transition: all 0.2s ease;
+    text-transform: none;
+    letter-spacing: 0.5px;
 }
 
 button:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.25) 100%);
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 
-        0 8px 20px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: #454545;
+    border-color: #606060;
+    color: #ffffff;
 }
 
 button:active {
-    transform: translateY(-1px) scale(1.02);
-}
-
-button span {
-    position: relative;
-    z-index: 1;
+    background: #353535;
 }
 
 .difficulty-selector {
@@ -248,35 +119,31 @@ button span {
 .difficulty-selector label {
     margin: 0 8px;
     cursor: pointer;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
-    border-radius: 10px;
+    padding: 8px 16px;
+    background: #333333;
+    border-radius: 6px;
     display: inline-block;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid #404040;
+    font-weight: 400;
+    color: #b0b0b0;
 }
 
 .difficulty-selector input[type="radio"] {
-    margin-right: 8px;
-    accent-color: #a8edea;
+    margin-right: 6px;
+    accent-color: #6b6b6b;
     cursor: pointer;
 }
 
-.difficulty-selector input[type="radio"]:checked + span {
-    color: #a8edea;
-}
-
 .difficulty-selector label:has(input[type="radio"]:checked) {
-    background: linear-gradient(135deg, rgba(168, 237, 234, 0.3) 0%, rgba(168, 237, 234, 0.2) 100%);
-    border-color: rgba(168, 237, 234, 0.5);
-    box-shadow: 0 4px 12px rgba(168, 237, 234, 0.3);
-    transform: scale(1.05);
+    background: #3a3a3a;
+    border-color: #606060;
+    color: #ffffff;
 }
 
 .difficulty-selector label:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%);
-    transform: translateY(-2px);
+    background: #383838;
+    border-color: #505050;
 }
 
 .game-over-overlay {
@@ -286,73 +153,47 @@ button span {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.8);
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .game-over-content {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 50%, rgba(240, 147, 251, 0.95) 100%);
-    padding: 50px 60px;
-    border-radius: 24px;
+    background: #2a2a2a;
+    padding: 40px 50px;
+    border-radius: 12px;
     text-align: center;
-    animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-@keyframes slideIn {
-    from {
-        transform: scale(0.3) rotate(-10deg);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1) rotate(0deg);
-        opacity: 1;
-    }
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid #404040;
 }
 
 .game-over-content h2 {
-    font-size: 3em;
+    font-size: 2.5em;
     margin-bottom: 20px;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-    background: linear-gradient(135deg, #fff 0%, #a8edea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
+    font-weight: 600;
 }
 
 .game-over-content p {
-    font-size: 1.5em;
+    font-size: 1.2em;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #b0b0b0;
 }
 
 .game-over-content button {
     margin-top: 20px;
-    font-size: 1.2em;
-    padding: 15px 35px;
 }
 
 .instructions {
     margin-top: 25px;
-    font-size: 0.95em;
-    opacity: 0.85;
+    font-size: 0.9em;
+    color: #909090;
     max-width: 400px;
     padding: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #333333;
+    border-radius: 8px;
+    border: 1px solid #404040;
     line-height: 1.6;
 }
 
