@@ -27,11 +27,21 @@ let level = 1;
 let game = null;
 let animationFrame = null;
 let foodTimer = null;
+let speedBoostTimer = null;
 let isPaused = false;
 let gameStarted = false;
 let speed = 150;
+let baseSpeed = 150;
 let gridCanvas = null;
 let gridCtx = null;
+
+// Food types
+const FOOD_TYPES = {
+    NORMAL: 'normal',
+    SPEEDUP: 'speedup',
+    MULTIPLIER: 'multiplier',
+    MAGNET: 'magnet'
+};
 
 const difficulties = {
     easy: 150,
@@ -75,6 +85,10 @@ function initGame() {
     isPaused = false;
     gameStarted = false;
     if(foodTimer) clearInterval(foodTimer);
+    if(speedBoostTimer) clearTimeout(speedBoostTimer);
+    const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+    baseSpeed = difficulties[selectedDifficulty];
+    speed = baseSpeed;
     updateScore();
     generateRandomFoods();
     initGridCanvas();
@@ -119,6 +133,18 @@ function generateRandomFoods() {
         }
         
         if(validPosition) {
+            // Randomly assign food type (70% normal, 10% each special)
+            const rand = Math.random();
+            let foodType = FOOD_TYPES.NORMAL;
+            if(rand < 0.1) {
+                foodType = FOOD_TYPES.SPEEDUP;
+            } else if(rand < 0.2) {
+                foodType = FOOD_TYPES.MULTIPLIER;
+            } else if(rand < 0.3) {
+                foodType = FOOD_TYPES.MAGNET;
+            }
+            
+            newFood.type = foodType;
             foods.push(newFood);
         }
     }
@@ -158,6 +184,18 @@ function addRandomFood() {
         }
         
         if(validPosition) {
+            // Randomly assign food type (70% normal, 10% each special)
+            const rand = Math.random();
+            let foodType = FOOD_TYPES.NORMAL;
+            if(rand < 0.1) {
+                foodType = FOOD_TYPES.SPEEDUP;
+            } else if(rand < 0.2) {
+                foodType = FOOD_TYPES.MULTIPLIER;
+            } else if(rand < 0.3) {
+                foodType = FOOD_TYPES.MAGNET;
+            }
+            
+            newFood.type = foodType;
             foods.push(newFood);
             break;
         }
@@ -217,11 +255,64 @@ function drawFood() {
         const centerY = food.y + box/2;
         const radius = box/2 - 2;
         
-        // Simple solid red circle
-        ctx.fillStyle = '#d32f2f';
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-        ctx.fill();
+        // Ensure food has a type (default to normal)
+        if(!food.type) {
+            food.type = FOOD_TYPES.NORMAL;
+        }
+        
+        // Different colors and styles for different food types
+        switch(food.type) {
+            case FOOD_TYPES.SPEEDUP:
+                // Yellow/Orange for speedup
+                ctx.fillStyle = '#ffa500';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Draw lightning bolt indicator
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(centerX - 2, centerY - 4, 4, 8);
+                break;
+                
+            case FOOD_TYPES.MULTIPLIER:
+                // Purple for multiplier (5x points)
+                ctx.fillStyle = '#9c27b0';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Draw "5x" indicator
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('5x', centerX, centerY);
+                break;
+                
+            case FOOD_TYPES.MAGNET:
+                // Blue for magnet
+                ctx.fillStyle = '#2196f3';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Draw magnet indicator (circle with line)
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius - 3, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX - 3, centerY);
+                ctx.lineTo(centerX + 3, centerY);
+                ctx.stroke();
+                break;
+                
+            default:
+                // Normal red food
+                ctx.fillStyle = '#d32f2f';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+        }
     }
 }
 
@@ -274,9 +365,36 @@ function updateGame() {
 
     // Check collision with any food item
     let foodEaten = false;
+    let eatenFoodType = null;
     for(let i = foods.length - 1; i >= 0; i--) {
         if(snakeX === foods[i].x && snakeY === foods[i].y) {
-            score++;
+            eatenFoodType = foods[i].type;
+            
+            // Handle different food types
+            switch(eatenFoodType) {
+                case FOOD_TYPES.SPEEDUP:
+                    // Speed up for 5 seconds
+                    activateSpeedBoost();
+                    score++;
+                    break;
+                    
+                case FOOD_TYPES.MULTIPLIER:
+                    // 5x points
+                    score += 5;
+                    break;
+                    
+                case FOOD_TYPES.MAGNET:
+                    // Pull other food items closer (within 3 cells)
+                    pullFoodCloser(snakeX, snakeY);
+                    score++;
+                    break;
+                    
+                default:
+                    // Normal food - 1 point
+                    score++;
+                    break;
+            }
+            
             level = Math.floor(score / 5) + 1;
             updateScore();
             foods.splice(i, 1); // Remove eaten food
@@ -308,6 +426,88 @@ function collision(head, array) {
     return false;
 }
 
+function activateSpeedBoost() {
+    // Clear existing speed boost timer
+    if(speedBoostTimer) {
+        clearTimeout(speedBoostTimer);
+    }
+    
+    // Speed up the game (reduce interval by 50%)
+    const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+    baseSpeed = difficulties[selectedDifficulty];
+    speed = Math.floor(baseSpeed * 0.5);
+    
+    // Restart game interval with new speed
+    if(game) clearInterval(game);
+    game = setInterval(updateGame, speed);
+    
+    // Reset speed after 5 seconds
+    speedBoostTimer = setTimeout(() => {
+        speed = baseSpeed;
+        if(game) clearInterval(game);
+        game = setInterval(updateGame, speed);
+        speedBoostTimer = null;
+    }, 5000);
+}
+
+function pullFoodCloser(snakeHeadX, snakeHeadY) {
+    // Pull all other food items within 3 cells closer to snake head
+    for(let food of foods) {
+        const dx = food.x - snakeHeadX;
+        const dy = food.y - snakeHeadY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Only affect food within 3 cells (60 pixels = 3 * 20)
+        if(distance <= 60 && distance > 0) {
+            // Calculate direction towards snake head
+            const angle = Math.atan2(dy, dx);
+            
+            // Determine which direction to move (up, down, left, right)
+            let moveX = 0;
+            let moveY = 0;
+            
+            if(Math.abs(dx) > Math.abs(dy)) {
+                // Move horizontally
+                moveX = dx > 0 ? -box : box;
+            } else {
+                // Move vertically
+                moveY = dy > 0 ? -box : box;
+            }
+            
+            // Align to grid
+            const newX = food.x + moveX;
+            const newY = food.y + moveY;
+            
+            // Check if new position is valid (within bounds and not on snake)
+            if(newX >= 0 && newX < canvas.width && 
+               newY >= 0 && newY < canvas.height) {
+                let validPosition = true;
+                for(let segment of snake) {
+                    if(newX === segment.x && newY === segment.y) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                // Check if new position conflicts with other foods
+                if(validPosition) {
+                    for(let otherFood of foods) {
+                        if(otherFood !== food && newX === otherFood.x && newY === otherFood.y) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if(validPosition) {
+                    food.x = newX;
+                    food.y = newY;
+                }
+            }
+        }
+    }
+}
+
 function updateScore() {
     document.getElementById('score').textContent = score;
     document.getElementById('level').textContent = level;
@@ -321,6 +521,7 @@ function updateScore() {
 function gameOver() {
     clearInterval(game);
     if(foodTimer) clearInterval(foodTimer);
+    if(speedBoostTimer) clearTimeout(speedBoostTimer);
     if(animationFrame) {
         cancelAnimationFrame(animationFrame);
     }
@@ -340,7 +541,8 @@ function startGame() {
     if(gameStarted) return;
     
     const selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
-    speed = difficulties[selectedDifficulty];
+    baseSpeed = difficulties[selectedDifficulty];
+    speed = baseSpeed;
     
     gameStarted = true;
     isPaused = false;
@@ -351,6 +553,7 @@ function startGame() {
     
     if(game) clearInterval(game);
     if(foodTimer) clearInterval(foodTimer);
+    if(speedBoostTimer) clearTimeout(speedBoostTimer);
     // Start continuous rendering
     render();
     // Start game logic updates at set intervals
@@ -376,6 +579,7 @@ function pauseGame() {
 function resetGame() {
     if(game) clearInterval(game);
     if(foodTimer) clearInterval(foodTimer);
+    if(speedBoostTimer) clearTimeout(speedBoostTimer);
     if(animationFrame) {
         cancelAnimationFrame(animationFrame);
     }
