@@ -18,10 +18,13 @@ function roundRect(x, y, width, height, radius) {
 }
 
 let snake = [];
+let botSnake = [];
 let foods = [];
-const MAX_FOOD = 5;
+const MAX_FOOD = 12;
 let direction = "";
+let botDirection = "";
 let score = 0;
+let botScore = 0;
 let highScore = 0;
 let level = 1;
 let game = null;
@@ -30,6 +33,7 @@ let foodTimer = null;
 let speedBoostTimer = null;
 let isPaused = false;
 let gameStarted = false;
+let botMode = false;
 let speed = 150;
 let baseSpeed = 150;
 let gridCanvas = null;
@@ -77,10 +81,14 @@ function initGridCanvas() {
 }
 
 function initGame() {
-    snake = [{ x: 9 * box, y: 10 * box }];
+    // Center snake in expanded area (600x600 = 30x30 grid)
+    snake = [{ x: 15 * box, y: 15 * box }];
+    botSnake = [{ x: 25 * box, y: 15 * box }];
     foods = [];
     direction = "";
+    botDirection = "";
     score = 0;
+    botScore = 0;
     level = 1;
     isPaused = false;
     gameStarted = false;
@@ -225,6 +233,7 @@ function updateFoods() {
 }
 
 function drawSnake() {
+    // Draw player snake (green)
     for(let i = 0; i < snake.length; i++) {
         const segment = snake[i];
         const padding = 2;
@@ -244,6 +253,31 @@ function drawSnake() {
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(segment.x + 6, segment.y + 6, 3, 3);
             ctx.fillRect(segment.x + 11, segment.y + 6, 3, 3);
+        }
+    }
+    
+    // Draw bot snake (blue) if bot mode is enabled
+    if(botMode && botSnake.length > 0) {
+        for(let i = 0; i < botSnake.length; i++) {
+            const segment = botSnake[i];
+            const padding = 2;
+            
+            // Different color for bot - blue/cyan
+            if(i === 0) {
+                ctx.fillStyle = '#2196f3';
+            } else {
+                ctx.fillStyle = '#1976d2';
+            }
+            
+            // Draw simple rectangle
+            ctx.fillRect(segment.x + padding, segment.y + padding, box - padding * 2, box - padding * 2);
+            
+            // Draw simple eyes on head
+            if(i === 0) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(segment.x + 6, segment.y + 6, 3, 3);
+                ctx.fillRect(segment.x + 11, segment.y + 6, 3, 3);
+            }
         }
     }
 }
@@ -351,10 +385,123 @@ function render() {
     animationFrame = requestAnimationFrame(render);
 }
 
+// Bot AI - finds best direction for bot snake to move
+function botSnakeMove() {
+    if(botSnake.length === 0 || foods.length === 0) return;
+    
+    const head = botSnake[0];
+    let bestFood = null;
+    let minDistance = Infinity;
+    
+    // Find nearest food
+    for(let food of foods) {
+        const dx = food.x - head.x;
+        const dy = food.y - head.y;
+        const distance = Math.abs(dx) + Math.abs(dy); // Manhattan distance
+        
+        if(distance < minDistance) {
+            minDistance = distance;
+            bestFood = food;
+        }
+    }
+    
+    if(!bestFood) {
+        // If no food, move in a safe direction
+        if(botDirection === "") {
+            botDirection = "RIGHT";
+        }
+        return;
+    }
+    
+    // Try to move towards food, avoiding walls, self, and player snake
+    const possibleMoves = [];
+    
+    // Check each direction
+    const directions = [
+        { name: 'UP', dx: 0, dy: -box, check: () => head.y > 0 },
+        { name: 'DOWN', dx: 0, dy: box, check: () => head.y < canvas.height - box },
+        { name: 'LEFT', dx: -box, dy: 0, check: () => head.x > 0 },
+        { name: 'RIGHT', dx: box, dy: 0, check: () => head.x < canvas.width - box }
+    ];
+    
+    for(let dir of directions) {
+        if(!dir.check()) continue;
+        
+        const newX = head.x + dir.dx;
+        const newY = head.y + dir.dy;
+        
+        // Check if would hit bot snake body
+        let wouldHit = false;
+        for(let segment of botSnake) {
+            if(newX === segment.x && newY === segment.y) {
+                wouldHit = true;
+                break;
+            }
+        }
+        
+        // Check if would hit player snake
+        if(!wouldHit) {
+            for(let segment of snake) {
+                if(newX === segment.x && newY === segment.y) {
+                    wouldHit = true;
+                    break;
+                }
+            }
+        }
+        
+        if(!wouldHit) {
+            // Calculate distance to food from this position
+            const newDx = bestFood.x - newX;
+            const newDy = bestFood.y - newY;
+            const newDistance = Math.abs(newDx) + Math.abs(newDy);
+            
+            // Prefer direction that gets closer to food
+            const preference = minDistance - newDistance;
+            
+            possibleMoves.push({
+                direction: dir.name,
+                distance: newDistance,
+                preference: preference
+            });
+        }
+    }
+    
+    // Sort by preference (higher is better)
+    possibleMoves.sort((a, b) => b.preference - a.preference);
+    
+    if(possibleMoves.length > 0) {
+        // Pick best move, but avoid reversing
+        for(let move of possibleMoves) {
+            const canMove = 
+                (move.direction === 'LEFT' && botDirection !== 'RIGHT') ||
+                (move.direction === 'RIGHT' && botDirection !== 'LEFT') ||
+                (move.direction === 'UP' && botDirection !== 'DOWN') ||
+                (move.direction === 'DOWN' && botDirection !== 'UP') ||
+                botDirection === '';
+            
+            if(canMove) {
+                botDirection = move.direction;
+                return;
+            }
+        }
+        
+        // If no ideal move, take first available
+        if(possibleMoves.length > 0) {
+            botDirection = possibleMoves[0].direction;
+        }
+    }
+}
+
 // Game logic update - runs at the set speed interval
 function updateGame() {
     if(!gameStarted || isPaused) return;
 
+    // Bot AI moves bot snake
+    if(botMode && botSnake.length > 0) {
+        botSnakeMove();
+    }
+
+    // Update player snake
     let snakeX = snake[0].x;
     let snakeY = snake[0].y;
 
@@ -363,7 +510,7 @@ function updateGame() {
     if(direction === "RIGHT") snakeX += box;
     if(direction === "DOWN") snakeY += box;
 
-    // Check collision with any food item
+    // Check collision with any food item (player snake)
     let foodEaten = false;
     let eatenFoodType = null;
     for(let i = foods.length - 1; i >= 0; i--) {
@@ -411,12 +558,69 @@ function updateGame() {
 
     let newHead = { x: snakeX, y: snakeY };
 
+    // Check collision with walls or self
     if(snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
+        gameOver();
+        return;
+    }
+    
+    // Check collision with bot snake
+    if(botMode && botSnake.length > 0 && collision(newHead, botSnake)) {
         gameOver();
         return;
     }
 
     snake.unshift(newHead);
+
+    // Update bot snake
+    if(botMode && botSnake.length > 0) {
+        let botSnakeX = botSnake[0].x;
+        let botSnakeY = botSnake[0].y;
+
+        if(botDirection === "LEFT") botSnakeX -= box;
+        if(botDirection === "UP") botSnakeY -= box;
+        if(botDirection === "RIGHT") botSnakeX += box;
+        if(botDirection === "DOWN") botSnakeY += box;
+
+        // Check collision with food (bot snake)
+        let botFoodEaten = false;
+        for(let i = foods.length - 1; i >= 0; i--) {
+            if(botSnakeX === foods[i].x && botSnakeY === foods[i].y) {
+                botScore++;
+                foods.splice(i, 1); // Remove eaten food
+                botFoodEaten = true;
+                break;
+            }
+        }
+        
+        if(!botFoodEaten) {
+            botSnake.pop();
+        }
+
+        let botNewHead = { x: botSnakeX, y: botSnakeY };
+
+        // Check collision with walls or self
+        if(botSnakeX < 0 || botSnakeX >= canvas.width || botSnakeY < 0 || botSnakeY >= canvas.height || collision(botNewHead, botSnake)) {
+            // Bot snake dies - remove it
+            botSnake = [];
+            botDirection = "";
+            botScore = 0;
+            updateScore();
+            return;
+        }
+        
+        // Check collision with player snake
+        if(collision(botNewHead, snake)) {
+            // Bot snake dies - remove it
+            botSnake = [];
+            botDirection = "";
+            botScore = 0;
+            updateScore();
+            return;
+        }
+
+        botSnake.unshift(botNewHead);
+    }
 }
 
 function collision(head, array) {
@@ -511,6 +715,13 @@ function pullFoodCloser(snakeHeadX, snakeHeadY) {
 function updateScore() {
     document.getElementById('score').textContent = score;
     document.getElementById('level').textContent = level;
+    
+    if(botMode) {
+        document.getElementById('botScore').textContent = botScore;
+        document.getElementById('botScoreBox').style.display = 'block';
+    } else {
+        document.getElementById('botScoreBox').style.display = 'none';
+    }
     
     if(score > highScore) {
         highScore = score;
@@ -616,6 +827,18 @@ document.addEventListener("keydown", (event) => {
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('pauseBtn').addEventListener('click', pauseGame);
 document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+document.getElementById('botBtn').addEventListener('click', () => {
+    botMode = !botMode;
+    document.getElementById('botBtn').textContent = botMode ? 'Bot Mode: ON' : 'Bot Mode: OFF';
+    
+    if(botMode && gameStarted && !isPaused) {
+        // Start bot moving if game is already running
+        if(direction === "") {
+            direction = "RIGHT";
+        }
+    }
+});
 
 document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
     radio.addEventListener('change', () => {

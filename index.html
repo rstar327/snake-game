@@ -16,6 +16,10 @@
                 <div class="stat-label">Score</div>
                 <div class="stat-value" id="score">0</div>
             </div>
+            <div class="stat-box" id="botScoreBox" style="display: none;">
+                <div class="stat-label">Bot Score</div>
+                <div class="stat-value" id="botScore">0</div>
+            </div>
             <div class="stat-box">
                 <div class="stat-label">High Score</div>
                 <div class="stat-value" id="highScore">0</div>
@@ -41,12 +45,13 @@
             </label>
         </div>
 
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
 
         <div class="controls">
             <button id="startBtn"><span>Start Game</span></button>
             <button id="pauseBtn"><span>Pause</span></button>
             <button id="resetBtn"><span>Reset</span></button>
+            <button id="botBtn"><span>Bot Mode: OFF</span></button>
         </div>
 
         <div class="instructions">
