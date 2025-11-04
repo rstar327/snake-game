@@ -186,7 +186,7 @@ button:active {
 }
 
 .instructions {
-    margin-top: 25px;
+    margin: 25px auto 0;
     font-size: 0.9em;
     color: #909090;
     max-width: 400px;
@@ -195,6 +195,7 @@ button:active {
     border-radius: 8px;
     border: 1px solid #404040;
     line-height: 1.6;
+    text-align: center;
 }
 
 @media (max-width: 600px) {
