@@ -43,9 +43,9 @@
         <canvas id="gameCanvas" width="400" height="400"></canvas>
 
         <div class="controls">
-            <button id="startBtn">Start Game</button>
-            <button id="pauseBtn">Pause</button>
-            <button id="resetBtn">Reset</button>
+            <button id="startBtn"><span>Start Game</span></button>
+            <button id="pauseBtn"><span>Pause</span></button>
+            <button id="resetBtn"><span>Reset</span></button>
         </div>
 
         <div class="instructions">
@@ -55,10 +55,10 @@
 
     <div class="game-over-overlay" id="gameOverOverlay">
         <div class="game-over-content">
-            <h2 style="font-size: 3em; margin-bottom: 20px;">Game Over!</h2>
-            <p style="font-size: 1.5em; margin-bottom: 10px;">Final Score: <span id="finalScore">0</span></p>
-            <p style="font-size: 1.2em; margin-bottom: 30px;">High Score: <span id="finalHighScore">0</span></p>
-            <button onclick="restartGame()" style="font-size: 1.2em; padding: 15px 30px;">Play Again</button>
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>High Score: <span id="finalHighScore">0</span></p>
+            <button onclick="restartGame()"><span>Play Again</span></button>
         </div>
     </div>
 
