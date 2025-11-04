@@ -18,13 +18,15 @@ function roundRect(x, y, width, height, radius) {
 }
 
 let snake = [];
-let food = {};
+let foods = [];
+const MAX_FOOD = 5;
 let direction = "";
 let score = 0;
 let highScore = 0;
 let level = 1;
 let game = null;
 let animationFrame = null;
+let foodTimer = null;
 let isPaused = false;
 let gameStarted = false;
 let speed = 150;
@@ -66,29 +68,122 @@ function initGridCanvas() {
 
 function initGame() {
     snake = [{ x: 9 * box, y: 10 * box }];
+    foods = [];
     direction = "";
     score = 0;
     level = 1;
     isPaused = false;
     gameStarted = false;
+    if(foodTimer) clearInterval(foodTimer);
     updateScore();
-    generateFood();
+    generateRandomFoods();
     initGridCanvas();
     render();
 }
 
-function generateFood() {
-    food = {
-        x: Math.floor(Math.random() * (canvas.width / box)) * box,
-        y: Math.floor(Math.random() * (canvas.height / box)) * box
-    };
+function generateRandomFoods() {
+    // Generate random number of food items (0 to MAX_FOOD)
+    const targetCount = Math.floor(Math.random() * (MAX_FOOD + 1));
     
-    for(let segment of snake) {
-        if(food.x === segment.x && food.y === segment.y) {
-            generateFood();
-            return;
+    // Clear existing foods
+    foods = [];
+    
+    // Generate food items up to target count
+    let attempts = 0;
+    const maxAttempts = 100; // Prevent infinite loop
+    
+    while(foods.length < targetCount && attempts < maxAttempts) {
+        attempts++;
+        let newFood = {
+            x: Math.floor(Math.random() * (canvas.width / box)) * box,
+            y: Math.floor(Math.random() * (canvas.height / box)) * box
+        };
+        
+        // Check if food position conflicts with snake
+        let validPosition = true;
+        for(let segment of snake) {
+            if(newFood.x === segment.x && newFood.y === segment.y) {
+                validPosition = false;
+                break;
+            }
+        }
+        
+        // Check if food position conflicts with existing foods
+        if(validPosition) {
+            for(let existingFood of foods) {
+                if(newFood.x === existingFood.x && newFood.y === existingFood.y) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+        
+        if(validPosition) {
+            foods.push(newFood);
         }
     }
+}
+
+function addRandomFood() {
+    if(foods.length >= MAX_FOOD) return;
+    if(!gameStarted || isPaused) return;
+    
+    let attempts = 0;
+    const maxAttempts = 50;
+    
+    while(attempts < maxAttempts) {
+        attempts++;
+        let newFood = {
+            x: Math.floor(Math.random() * (canvas.width / box)) * box,
+            y: Math.floor(Math.random() * (canvas.height / box)) * box
+        };
+        
+        // Check if food position conflicts with snake
+        let validPosition = true;
+        for(let segment of snake) {
+            if(newFood.x === segment.x && newFood.y === segment.y) {
+                validPosition = false;
+                break;
+            }
+        }
+        
+        // Check if food position conflicts with existing foods
+        if(validPosition) {
+            for(let existingFood of foods) {
+                if(newFood.x === existingFood.x && newFood.y === existingFood.y) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+        
+        if(validPosition) {
+            foods.push(newFood);
+            break;
+        }
+    }
+}
+
+function removeRandomFood() {
+    if(foods.length === 0) return;
+    if(!gameStarted || isPaused) return;
+    
+    // Randomly remove one food item
+    const index = Math.floor(Math.random() * foods.length);
+    foods.splice(index, 1);
+}
+
+function updateFoods() {
+    if(!gameStarted || isPaused) return;
+    
+    // Only add food, never remove displayed food
+    const action = Math.random();
+    
+    if(action < 0.5 && foods.length < MAX_FOOD) {
+        // 50% chance to add food if under max
+        addRandomFood();
+    }
+    // 50% chance to do nothing
 }
 
 function drawSnake() {
@@ -116,15 +211,18 @@ function drawSnake() {
 }
 
 function drawFood() {
-    const centerX = food.x + box/2;
-    const centerY = food.y + box/2;
-    const radius = box/2 - 2;
-    
-    // Simple solid red circle
-    ctx.fillStyle = '#d32f2f';
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.fill();
+    // Draw all food items
+    for(let food of foods) {
+        const centerX = food.x + box/2;
+        const centerY = food.y + box/2;
+        const radius = box/2 - 2;
+        
+        // Simple solid red circle
+        ctx.fillStyle = '#d32f2f';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 // Render function - runs at 60fps for smooth animation
@@ -174,11 +272,21 @@ function updateGame() {
     if(direction === "RIGHT") snakeX += box;
     if(direction === "DOWN") snakeY += box;
 
-    if(snakeX === food.x && snakeY === food.y) {
-        score++;
-        level = Math.floor(score / 5) + 1;
-        updateScore();
-        generateFood();
+    // Check collision with any food item
+    let foodEaten = false;
+    for(let i = foods.length - 1; i >= 0; i--) {
+        if(snakeX === foods[i].x && snakeY === foods[i].y) {
+            score++;
+            level = Math.floor(score / 5) + 1;
+            updateScore();
+            foods.splice(i, 1); // Remove eaten food
+            foodEaten = true;
+            break;
+        }
+    }
+    
+    if(foodEaten) {
+        // Don't immediately generate new food - let the timer handle it
     } else {
         snake.pop();
     }
@@ -212,6 +320,7 @@ function updateScore() {
 
 function gameOver() {
     clearInterval(game);
+    if(foodTimer) clearInterval(foodTimer);
     if(animationFrame) {
         cancelAnimationFrame(animationFrame);
     }
@@ -241,10 +350,13 @@ function startGame() {
     }
     
     if(game) clearInterval(game);
+    if(foodTimer) clearInterval(foodTimer);
     // Start continuous rendering
     render();
     // Start game logic updates at set intervals
     game = setInterval(updateGame, speed);
+    // Start food timer to randomly add/remove food (every 1-1.5 seconds)
+    foodTimer = setInterval(updateFoods, 1200);
 }
 
 function pauseGame() {
@@ -263,6 +375,7 @@ function pauseGame() {
 
 function resetGame() {
     if(game) clearInterval(game);
+    if(foodTimer) clearInterval(foodTimer);
     if(animationFrame) {
         cancelAnimationFrame(animationFrame);
     }
