@@ -24,15 +24,45 @@ let score = 0;
 let highScore = 0;
 let level = 1;
 let game = null;
+let animationFrame = null;
 let isPaused = false;
 let gameStarted = false;
 let speed = 150;
+let gridCanvas = null;
+let gridCtx = null;
 
 const difficulties = {
     easy: 150,
     medium: 100,
     hard: 60
 };
+
+// Create off-screen canvas for grid to improve performance
+function initGridCanvas() {
+    gridCanvas = document.createElement('canvas');
+    gridCanvas.width = canvas.width;
+    gridCanvas.height = canvas.height;
+    gridCtx = gridCanvas.getContext('2d');
+    
+    // Draw grid once
+    gridCtx.fillStyle = "#1e1e1e";
+    gridCtx.fillRect(0, 0, gridCanvas.width, gridCanvas.height);
+    
+    gridCtx.strokeStyle = "#2a2a2a";
+    gridCtx.lineWidth = 1;
+    for(let i = 0; i <= gridCanvas.width; i += box) {
+        gridCtx.beginPath();
+        gridCtx.moveTo(i, 0);
+        gridCtx.lineTo(i, gridCanvas.height);
+        gridCtx.stroke();
+    }
+    for(let i = 0; i <= gridCanvas.height; i += box) {
+        gridCtx.beginPath();
+        gridCtx.moveTo(0, i);
+        gridCtx.lineTo(gridCanvas.width, i);
+        gridCtx.stroke();
+    }
+}
 
 function initGame() {
     snake = [{ x: 9 * box, y: 10 * box }];
@@ -43,7 +73,8 @@ function initGame() {
     gameStarted = false;
     updateScore();
     generateFood();
-    draw();
+    initGridCanvas();
+    render();
 }
 
 function generateFood() {
@@ -96,26 +127,10 @@ function drawFood() {
     ctx.fill();
 }
 
-function draw() {
-    // Simple solid background
-    ctx.fillStyle = "#1e1e1e";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Simple grid pattern
-    ctx.strokeStyle = "#2a2a2a";
-    ctx.lineWidth = 1;
-    for(let i = 0; i <= canvas.width; i += box) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
-    }
-    for(let i = 0; i <= canvas.height; i += box) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvas.width, i);
-        ctx.stroke();
-    }
+// Render function - runs at 60fps for smooth animation
+function render() {
+    // Draw grid from cached canvas
+    ctx.drawImage(gridCanvas, 0, 0);
 
     drawSnake();
     drawFood();
@@ -126,10 +141,12 @@ function draw() {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("Press START to begin", canvas.width/2, canvas.height/2);
+        animationFrame = requestAnimationFrame(render);
         return;
     }
 
     if(isPaused) {
+        // Draw semi-transparent overlay
         ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#e0e0e0";
@@ -137,8 +154,17 @@ function draw() {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("PAUSED", canvas.width/2, canvas.height/2);
+        animationFrame = requestAnimationFrame(render);
         return;
     }
+
+    // Continue animation loop
+    animationFrame = requestAnimationFrame(render);
+}
+
+// Game logic update - runs at the set speed interval
+function updateGame() {
+    if(!gameStarted || isPaused) return;
 
     let snakeX = snake[0].x;
     let snakeY = snake[0].y;
@@ -186,6 +212,9 @@ function updateScore() {
 
 function gameOver() {
     clearInterval(game);
+    if(animationFrame) {
+        cancelAnimationFrame(animationFrame);
+    }
     gameStarted = false;
     document.getElementById('finalScore').textContent = score;
     document.getElementById('finalHighScore').textContent = highScore;
@@ -212,17 +241,31 @@ function startGame() {
     }
     
     if(game) clearInterval(game);
-    game = setInterval(draw, speed);
+    // Start continuous rendering
+    render();
+    // Start game logic updates at set intervals
+    game = setInterval(updateGame, speed);
 }
 
 function pauseGame() {
     if(!gameStarted) return;
     isPaused = !isPaused;
     document.getElementById('pauseBtn').textContent = isPaused ? 'Resume' : 'Pause';
+    
+    if(isPaused) {
+        if(animationFrame) {
+            cancelAnimationFrame(animationFrame);
+        }
+    } else {
+        render();
+    }
 }
 
 function resetGame() {
     if(game) clearInterval(game);
+    if(animationFrame) {
+        cancelAnimationFrame(animationFrame);
+    }
     initGame();
     document.getElementById('pauseBtn').textContent = 'Pause';
 }
