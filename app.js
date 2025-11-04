@@ -27,6 +27,8 @@ let score = 0;
 let botScore = 0;
 let highScore = 0;
 let level = 1;
+let lives = 3;
+const MAX_LIVES = 3;
 let game = null;
 let animationFrame = null;
 let foodTimer = null;
@@ -90,6 +92,7 @@ function initGame() {
     score = 0;
     botScore = 0;
     level = 1;
+    lives = MAX_LIVES;
     isPaused = false;
     gameStarted = false;
     if(foodTimer) clearInterval(foodTimer);
@@ -715,6 +718,7 @@ function pullFoodCloser(snakeHeadX, snakeHeadY) {
 function updateScore() {
     document.getElementById('score').textContent = score;
     document.getElementById('level').textContent = level;
+    document.getElementById('lives').textContent = lives;
     
     if(botMode) {
         document.getElementById('botScore').textContent = botScore;
@@ -729,6 +733,26 @@ function updateScore() {
     }
 }
 
+function resetSnakePosition() {
+    // Reset snake to a random safe position
+    let attempts = 0;
+    let newX, newY;
+    
+    do {
+        newX = Math.floor(Math.random() * (canvas.width / box)) * box;
+        newY = Math.floor(Math.random() * (canvas.height / box)) * box;
+        attempts++;
+    } while((attempts < 50) && (
+        // Check if position conflicts with bot snake
+        (botMode && botSnake.some(segment => segment.x === newX && segment.y === newY)) ||
+        // Check if position conflicts with foods
+        foods.some(food => food.x === newX && food.y === newY)
+    ));
+    
+    snake = [{ x: newX, y: newY }];
+    direction = "";
+}
+
 function gameOver() {
     clearInterval(game);
     if(foodTimer) clearInterval(foodTimer);
@@ -736,6 +760,28 @@ function gameOver() {
     if(animationFrame) {
         cancelAnimationFrame(animationFrame);
     }
+    
+    // Decrease lives
+    lives--;
+    updateScore();
+    
+    // If lives remaining, continue game without showing modal
+    if(lives > 0) {
+        // Reset snake position randomly
+        resetSnakePosition();
+        
+        // Reset game state
+        gameStarted = false;
+        isPaused = false;
+        
+        // Wait a moment then restart
+        setTimeout(() => {
+            startGame();
+        }, 500);
+        return;
+    }
+    
+    // No lives left - show game over modal
     gameStarted = false;
     document.getElementById('finalScore').textContent = score;
     document.getElementById('finalHighScore').textContent = highScore;
