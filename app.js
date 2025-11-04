@@ -140,7 +140,7 @@ function render() {
         ctx.font = "24px 'Segoe UI', Arial, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("Press START to begin", canvas.width/2, canvas.height/2);
+        ctx.fillText("Press SPACE or Arrow Keys to start", canvas.width/2, canvas.height/2);
         animationFrame = requestAnimationFrame(render);
         return;
     }
@@ -224,7 +224,7 @@ function gameOver() {
 function restartGame() {
     document.getElementById('gameOverOverlay').style.display = 'none';
     initGame();
-    startGame();
+    // Don't auto-start - wait for user input
 }
 
 function startGame() {
@@ -271,15 +271,24 @@ function resetGame() {
 }
 
 document.addEventListener("keydown", (event) => {
+    // Space bar to start game if not started, or pause if game is running
+    if(event.key === " ") {
+        event.preventDefault();
+        if(!gameStarted) {
+            startGame();
+        } else {
+            pauseGame();
+        }
+        return;
+    }
+
+    // Start game with arrow keys or WASD if not started
     if(!gameStarted && (event.key.startsWith("Arrow") || "wasd".includes(event.key.toLowerCase()))) {
         startGame();
     }
 
-    if(event.key === " ") {
-        event.preventDefault();
-        pauseGame();
-        return;
-    }
+    // Only process direction changes if game is started and not paused
+    if(!gameStarted || isPaused) return;
 
     if((event.key === "ArrowLeft" || event.key === "a") && direction !== "RIGHT") direction = "LEFT";
     if((event.key === "ArrowUp" || event.key === "w") && direction !== "DOWN") direction = "UP";
